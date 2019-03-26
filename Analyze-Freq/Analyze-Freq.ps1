@@ -65,13 +65,13 @@ param(
     [string]$BinPath = "$PSScriptRoot\Bin\",
 
     [Parameter(ParameterSetName = "Exe", Position = 4, Mandatory = $true)]
-    [string]$Exe
+    [switch]$Exe,
 
     [Parameter(ParameterSetName = "Py", Position = 4, Mandatory = $true)]
     [Parameter(Mandatory = $false)]
-    [string]$Py
+    [switch]$Py
 
-    )
+)
 
 process {
 
@@ -79,15 +79,15 @@ process {
     #Determine if $OutputPath exists and create if not
     if (!(Test-Path $OutputPath)){
 
-        Write-Host "OutputPath not detected. Creating ..."
-        New-Item -Path $OutputPath -Type Directory 
+        Write-Host ("OutputPath not detected. Creating ...") -ForegroundColor "Yellow" -BackgroundColor "Black"
+        New-Item -Path $OutputPath -Type Directory | Out-Null
     }
 
     #Determine if $NormalPath exists and, if so, verify the directory has contents
-    if (!(Test-Path $NormalPath){
+    if (!(Test-Path $NormalPath)){
 
         Write-Warning "NormalPath not detected and will be created. Populate with files to normalize with and run again."
-        New-Item -Path $NormalPath -Type Directory
+        New-Item -Path $NormalPath -Type Directory | Out-Null
         Exit
 
     }
@@ -99,10 +99,10 @@ process {
     }
 
     #Determine if $InputPath exists and, if so, verify the directory have contents
-    if (!(Test-Path $InputPath){
+    if (!(Test-Path $InputPath)){
 
         Write-Warning "InputPath not detected and will be created. Populate with files to ingest into freq and run again."
-        New-Item -Path $InputPath -Type Directory
+        New-Item -Path $InputPath -Type Directory | Out-Null
         Exit
 
     }
@@ -114,10 +114,10 @@ process {
     }
 
     #Determine if $BinPath exists
-    if (!(Test-Path $BinPath){
+    if (!(Test-Path $BinPath)){
 
         Write-Warning "BinPath not detected and will be created. Populate with freq.exe and/or freq.py and run again."
-        New-Item -Path $BinPath -Type Directory
+        New-Item -Path $BinPath -Type Directory | Out-Null
         Exit
 
     }
@@ -135,38 +135,39 @@ process {
     if (!(Test-Path $FreqTable)){
 
         Invoke-Expression -Command ("{0}\{1} --create {2}" -f $BinPath, $Freq, $FreqTable)
-    }
 
-    #Fill frequency table with normal text
-    $NormalFiles = Get-ChildItem $NormalPath -File 
+        #Fill frequency table with normal text
+        $NormalFiles = Get-ChildItem $NormalPath -File 
 
-    foreach ($NormalFile in $NormalFiles){
+        foreach ($NormalFile in $NormalFiles){
 
-        Invoke-Expression -Command ("{0}\{1} --normalfile {2}\{3} {4}" -f $BinPath, $Freq, $NormalPath, $NormalFile, $FreqTable)
+            Invoke-Expression -Command ("{0}\{1} --normalfile {2}\{3} {4}" -f $BinPath, $Freq, $NormalPath, $NormalFile, $FreqTable)
+        
+        }
     }
 
     #Loop through each input file and Import CSV Contents, then process through freq
     $InputFiles = Get-ChildItem -Path $InputPath
 
-    for ($InputFile in $Inputfiles){
+    foreach ($InputFile in $Inputfiles){
 
-        $CSV = Import-CSV $InputFile
+        $CSV = Import-CSV "$InputPath\$InputFile"
         $FirstProp = $CSV | Get-Member -MemberType NoteProperty | Select -First 1 -ExpandProperty Name
         $DataPoints = $CSV | Select -ExpandProperty $FirstProp
 
         foreach ($DataPoint in $DataPoints) {
 
-            $Output = Invoke-Expression -Command ("{0} --measure {1} {2}" -f $BinPath, $DataPoint, $FreqTable)
+            $Output = Invoke-Expression -Command ("{0}\{1} --measure {2} {3}" -f $BinPath, $Freq, $DataPoint, $FreqTable)
 
             $OutputCSV = ("{0}_Ouptut.csv" -f $InputFile)
 
             $OutputHash = @{
 
-                Input = $DataInput
+                Input = $DataPoint
                 Score = $Output
             }
 
-            [PSCustomObject]$OutputHash | Select Input, Score | Export-CSV $OutputPath\$OutputCSV -NoTypeInformation -Append
+            [PSCustomObject]$OutputHash | Select Input, Score | Export-CSV "$OutputPath\$OutputCSV" -NoTypeInformation -Append
         }
     }
 }
