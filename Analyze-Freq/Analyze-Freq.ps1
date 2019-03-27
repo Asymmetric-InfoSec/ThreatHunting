@@ -157,17 +157,24 @@ process {
 
         foreach ($DataPoint in $DataPoints) {
 
-            $Output = Invoke-Expression -Command ("{0}\{1} --measure {2} {3}" -f $BinPath, $Freq, $DataPoint, $FreqTable)
+            try {
 
-            $OutputCSV = ("{0}_Ouptut.csv" -f $InputFile)
+                $Output = Invoke-Expression -Command ("{0}\{1} --measure {2} {3}" -f $BinPath, $Freq, $DataPoint, $FreqTable)
 
-            $OutputHash = @{
+                $OutputCSV = ("{0}_Ouptut.csv" -f $InputFile)
 
-                Input = $DataPoint
-                Score = $Output
+                $OutputHash = @{
+
+                    Input = $DataPoint
+                    Score = $Output
+                }
+
+                [PSCustomObject]$OutputHash | Select Input, Score | Export-CSV "$OutputPath\$OutputCSV" -NoTypeInformation -Append
+            
+            }catch {
+
+                continue
             }
-
-            [PSCustomObject]$OutputHash | Select Input, Score | Export-CSV "$OutputPath\$OutputCSV" -NoTypeInformation -Append
-        }
+        }    
     }
 }
