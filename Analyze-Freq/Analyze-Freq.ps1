@@ -92,7 +92,7 @@ process {
 
     }
 
-    if ((Get-ChildItem $NormalPath).count -le 1){
+    if ((Get-ChildItem $NormalPath).count -lt 1){
 
         Write-Warning "$NormalPath is empty. Quitting..."
         Exit 
@@ -107,7 +107,7 @@ process {
 
     }
 
-    if ((Get-ChildItem $InputPath).count -le 1){
+    if ((Get-ChildItem $InputPath).count -lt 1){
 
         Write-Warning "$InputPath is empty. Quitting..."
         Exit 
@@ -147,10 +147,10 @@ process {
     }
 
     #Loop through each input file and Import CSV Contents, then process through freq
-    $InputFiles = Get-ChildItem -Path $InputPath
+    $InputFiles = Get-ChildItem -Path $InputPath -File
 
     foreach ($InputFile in $Inputfiles){
-
+        
         $CSV = Import-CSV "$InputPath\$InputFile"
         $FirstProp = $CSV | Get-Member -MemberType NoteProperty | Select -First 1 -ExpandProperty Name
         $DataPoints = $CSV | Select -ExpandProperty $FirstProp
