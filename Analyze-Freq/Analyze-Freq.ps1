@@ -141,7 +141,7 @@ process {
 
         foreach ($NormalFile in $NormalFiles){
 
-            Invoke-Expression -Command ("{0}\{1} --normalfile {2}\{3} {4}" -f $BinPath, $Freq, $NormalPath, $NormalFile, $FreqTable) | Out-Null
+            Invoke-Expression -Command ("{0}\{1} --normalfile {2}\{3} {4}" -f $BinPath, $Freq, $NormalPath, $NormalFile, $FreqTable)
         
         }
     }
@@ -159,7 +159,7 @@ process {
 
             try {
 
-                $Output = Invoke-Expression -Command ("{0}\{1} --measure {2} {3}" -f $BinPath, $Freq, $DataPoint, $FreqTable) | Out-Null
+                $Output = Invoke-Expression -Command ("{0}\{1} --measure {2} {3}" -f $BinPath, $Freq, $DataPoint, $FreqTable) 
 
                 $OutputCSV = ("{0}_Ouptut.csv" -f $InputFile)
 
